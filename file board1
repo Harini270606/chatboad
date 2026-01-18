@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    * {
+      font-family: 'DM Sans', sans-serif;
+    }
+    .chat-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .chat-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+    .chat-container::-webkit-scrollbar-thumb {
+      background: rgba(233, 69, 96, 0.5);
+      border-radius: 4px;
+    }
+    .chat-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(233, 69, 96, 0.7);
+    }
+    .question-bubble {
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Animated background with geometric patterns */
+    .animated-bg {
+      position: relative;
+      overflow: hidden;
+    }
+    .animated-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #0a0e27 0%, #1a1a3e 25%, #2d1b4e 50%, #1a1a3e 75%, #0a0e27 100%);
+      z-index: 0;
+    }
+    
+    /* Animated gradient overlay */
+    .animated-bg::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        linear-gradient(60deg, transparent 30%, rgba(233, 69, 96, 0.1) 50%, transparent 70%),
+        linear-gradient(120deg, transparent 30%, rgba(138, 43, 226, 0.08) 50%, transparent 70%);
+      animation: gradientShift 15s ease infinite;
+      z-index: 0;
+    }
+    
+    @keyframes gradientShift {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      50% {
+        transform: translate(10%, 10%) rotate(180deg);
+      }
+    }
+    
+    /* Floating geometric shapes */
+    .bg-shape {
+      position: absolute;
+      opacity: 0.15;
+      animation: floatShape 20s infinite ease-in-out;
+      z-index: 0;
+    }
+    
+    .shape-1 {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(233, 69, 96, 0.3), rgba(138, 43, 226, 0.2));
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      top: 10%;
+      left: 5%;
+      animation-delay: 0s;
+    }
+    
+    .shape-2 {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(45deg, rgba(138, 43, 226, 0.25), rgba(233, 69, 96, 0.15));
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      bottom: 15%;
+      right: 8%;
+      animation-delay: 5s;
+    }
+    
+    .shape-3 {
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(225deg, rgba(233, 69, 96, 0.2), transparent);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      top: 50%;
+      left: 80%;
+      animation-delay: 10s;
+    }
+    
+    .shape-4 {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(180deg, rgba(138, 43, 226, 0.2), rgba(233, 69, 96, 0.1));
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      top: 70%;
+      left: 15%;
+      animation-delay: 7s;
+    }
+    
+    .shape-5 {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(90deg, rgba(233, 69, 96, 0.25), transparent);
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      top: 25%;
+      right: 20%;
+      animation-delay: 3s;
+    }
+    
+    @keyframes floatShape {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      25% {
+        transform: translate(30px, -40px) rotate(90deg);
+      }
+      50% {
+        transform: translate(-20px, 30px) rotate(180deg);
+      }
+      75% {
+        transform: translate(40px, 20px) rotate(270deg);
+      }
+    }
+    
+    /* Particle effect */
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(233, 69, 96, 0.6);
+      border-radius: 50%;
+      animation: particleFloat 15s infinite ease-in-out;
+      z-index: 0;
+    }
+    
+    @keyframes particleFloat {
+      0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(50px);
+        opacity: 0;
+      }
+    }
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+    .recording {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+    }
+    
+    /* Enhanced message box styles */
+    .chat-box {
+      background: rgba(255, 255, 255, 0.12);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+    }
+    
+    .user-message {
+      background: linear-gradient(135deg, #e94560 0%, #d63450 100%);
+      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+    }
+    
+    .bot-message {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="h-full w-full overflow-auto animated-bg"><!-- Geometric shapes -->
+   <div class="bg-shape shape-1"></div>
+   <div class="bg-shape shape-2"></div>
+   <div class="bg-shape shape-3"></div>
+   <div class="bg-shape shape-4"></div>
+   <div class="bg-shape shape-5"></div><!-- Floating particles -->
+   <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+   <div class="particle" style="left: 25%; animation-delay: 3s;"></div>
+   <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+   <div class="particle" style="left: 55%; animation-delay: 2s;"></div>
+   <div class="particle" style="left: 70%; animation-delay: 5s;"></div>
+   <div class="particle" style="left: 85%; animation-delay: 8s;"></div>
+   <div class="particle" style="left: 15%; animation-delay: 4s;"></div>
+   <div class="particle" style="left: 60%; animation-delay: 7s;"></div><!-- Sign In Screen -->
+   <div id="sign-in-screen" class="min-h-full w-full flex items-center justify-center p-4 md:p-6 content-wrapper">
+    <div class="w-full max-w-md">
+     <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4" style="background: rgba(233, 69, 96, 0.2);">
+       <svg width="48" height="48" viewbox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path> <circle cx="9" cy="10" r="1"></circle> <circle cx="15" cy="10" r="1"></circle> <path d="M9 14a5 5 0 0 0 6 0"></path>
+       </svg>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: #eaeaea;">Welcome!</h1>
+      <p class="text-base" style="color: rgba(234, 234, 234, 0.6);">Sign in to start chatting</p>
+     </div>
+     <div class="rounded-2xl p-6 md:p-8" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px);">
+      <form id="sign-in-form">
+       <div class="mb-5"><label for="email-input" class="block text-sm font-medium mb-2" style="color: #eaeaea;">Email Address</label> <input type="email" id="email-input" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl text-base outline-none transition-all focus:ring-2" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eaeaea; focus:ring-color: #e94560;" required autocomplete="email">
+       </div>
+       <div class="mb-6"><label for="password-input" class="block text-sm font-medium mb-2" style="color: #eaeaea;">Password</label> <input type="password" id="password-input" placeholder="Enter your password" class="w-full px-4 py-3 rounded-xl text-base outline-none transition-all focus:ring-2" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eaeaea;" required autocomplete="current-password">
+       </div><button type="submit" id="sign-in-btn" class="w-full px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 mb-4" style="background: #e94560; color: #fff;"> Sign In </button>
+       <div class="text-center"><button type="button" id="guest-btn" class="text-sm font-medium transition-all hover:underline" style="color: rgba(234, 234, 234, 0.7);"> Continue as Guest </button>
+       </div>
+      </form>
+     </div>
+     <div class="text-center mt-6">
+      <p class="text-xs" style="color: rgba(234, 234, 234, 0.5);">Don't have an account? <button id="sign-up-link" class="font-medium hover:underline" style="color: #e94560;">Sign up</button></p>
+     </div>
+    </div>
+   </div><!-- Chat Screen (hidden initially) -->
+   <div id="chat-screen" class="hidden min-h-full w-full flex flex-col p-4 md:p-6 content-wrapper"><!-- Header -->
+    <div class="text-center mb-6">
+     <div class="inline-flex flex-col items-center gap-4 px-8 py-6 rounded-3xl" style="background: rgba(233, 69, 96, 0.15); border: 1px solid rgba(233, 69, 96, 0.3); backdrop-filter: blur(10px);">
+      <div class="flex items-center gap-3">
+       <svg width="48" height="48" viewbox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path> <circle cx="9" cy="10" r="1"></circle> <circle cx="15" cy="10" r="1"></circle> <path d="M9 14a5 5 0 0 0 6 0"></path>
+       </svg>
+      </div>
+      <div class="text-center">
+       <h1 id="board-title" class="text-3xl md:text-4xl font-bold mb-2" style="color: #eaeaea;">Welcome!</h1>
+       <p class="text-base md:text-lg" style="color: rgba(234, 234, 234, 0.7);">Chat with the assistant and get instant replies</p>
+      </div>
+     </div>
+     <div class="mt-4 text-center"><button id="sign-out-btn" class="text-sm font-medium px-4 py-2 rounded-lg transition-all hover:scale-105" style="background: rgba(255,255,255,0.1); color: rgba(234, 234, 234, 0.8);"> Sign Out </button>
+     </div>
+    </div><!-- Chat Container -->
+    <div class="flex-1 mb-4 rounded-2xl p-6 chat-container chat-box overflow-y-auto" style="min-height: 300px; max-height: 500px;">
+     <div id="questions-list" class="space-y-4"><!-- Messages will be rendered here -->
+     </div><!-- Typing Indicator -->
+     <div id="typing-indicator" class="hidden question-bubble flex justify-start">
+      <div class="max-w-[85%] md:max-w-[70%]">
+       <div class="flex items-center gap-2 mb-2 px-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" style="background: #e94560; color: white;">
+         A
+        </div><span class="text-sm font-medium" style="color: #eaeaea;">Assistant</span>
+       </div>
+       <div class="bot-message rounded-2xl rounded-tl-md px-5 py-4 shadow-lg">
+        <div class="flex gap-2">
+         <div class="w-2.5 h-2.5 rounded-full animate-bounce" style="background: #e94560; animation-delay: 0ms;"></div>
+         <div class="w-2.5 h-2.5 rounded-full animate-bounce" style="background: #e94560; animation-delay: 150ms;"></div>
+         <div class="w-2.5 h-2.5 rounded-full animate-bounce" style="background: #e94560; animation-delay: 300ms;"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div id="empty-state" class="flex flex-col items-center justify-center py-16">
+      <svg width="80" height="80" viewbox="0 0 24 24" fill="none" stroke="rgba(233, 69, 96, 0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle> <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path> <path d="M12 17h.01"></path>
+      </svg>
+      <p class="mt-6 text-center text-lg font-medium" style="color: rgba(234, 234, 234, 0.6);">No messages yet.<br><span class="text-base font-normal">Start a conversation!</span></p>
+     </div>
+    </div><!-- Input Area -->
+    <div class="rounded-2xl p-5" style="background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.35); backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);">
+     <form id="question-form" class="flex gap-3"><!-- Photo Upload Button --> <input type="file" id="photo-input" accept="image/*" class="hidden"> <button type="button" id="photo-btn" class="px-4 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border: 2px solid rgba(76, 175, 80, 0.8); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);" title="Upload photo">
+       <svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect> <circle cx="8.5" cy="8.5" r="1.5"></circle> <polyline points="21 15 16 10 5 21"></polyline>
+       </svg></button> <!-- Voice Record Button --> <button type="button" id="voice-btn" class="px-4 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; border: 2px solid rgba(33, 150, 243, 0.8); box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);" title="Record voice">
+       <svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path> <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path> <line x1="12" y1="19" x2="12" y2="23"></line> <line x1="8" y1="23" x2="16" y2="23"></line>
+       </svg></button> <input type="text" id="question-input" placeholder="Ask me anything..." class="flex-1 px-5 py-3 rounded-xl text-base font-medium outline-none transition-all focus:ring-2" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); color: #eaeaea; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);" maxlength="500" autocomplete="off"> <button type="submit" id="send-btn" class="send-btn px-7 py-3 rounded-xl font-bold text-base transition-all hover:scale-105 active:scale-95 flex items-center gap-2 flex-shrink-0" style="background: linear-gradient(135deg, #e94560 0%, #d63450 100%); color: #fff; box-shadow: 0 6px 20px rgba(233, 69, 96, 0.5); border: 2px solid rgba(233, 69, 96, 0.8);"> <span>Send</span>
+       <svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line> <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+       </svg></button>
+     </form>
+     <div id="char-count" class="text-right mt-2 text-xs font-medium" style="color: rgba(234, 234, 234, 0.5);">
+      0 / 500
+     </div>
+     <div id="recording-status" class="hidden mt-3 text-center text-sm px-4 py-2 rounded-lg flex items-center justify-center gap-2" style="background: rgba(233, 69, 96, 0.25); color: #eaeaea; border: 1px solid rgba(233, 69, 96, 0.4);">
+      <div class="recording w-2.5 h-2.5 rounded-full" style="background: #e94560;"></div><span>Recording... <span id="record-timer">0:00</span></span> <button id="stop-record-btn" class="ml-2 px-3 py-1 rounded text-xs font-semibold" style="background: #e94560; color: white;">Stop</button>
+     </div>
+     <div id="limit-warning" class="hidden mt-3 text-center text-sm px-4 py-2 rounded-lg font-medium" style="background: rgba(233, 69, 96, 0.25); color: #eaeaea; border: 1px solid rgba(233, 69, 96, 0.4);">
+      Maximum limit of 999 messages reached. Please refresh to start a new conversation.
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      board_title: 'Welcome!',
+      input_placeholder: 'Ask me anything...',
+      bot_name: 'Assistant',
+      background_color: '#1a1a2e',
+      accent_color: '#e94560',
+      text_color: '#eaeaea',
+      surface_color: 'rgba(255,255,255,0.05)',
+      font_family: 'DM Sans',
+      font_size: 16
+    };
+
+    let messages = [];
+    let isSubmitting = false;
+    let currentUser = null;
+
+    // Check if user is signed in
+    function checkAuth() {
+      const user = localStorage.getItem('chatboard_user');
+      if (user) {
+        currentUser = JSON.parse(user);
+        showChatScreen();
+      } else {
+        showSignInScreen();
+      }
+    }
+
+    function showSignInScreen() {
+      document.getElementById('sign-in-screen').classList.remove('hidden');
+      document.getElementById('chat-screen').classList.add('hidden');
+    }
+
+    function showChatScreen() {
+      document.getElementById('sign-in-screen').classList.add('hidden');
+      document.getElementById('chat-screen').classList.remove('hidden');
+    }
+
+    function handleSignIn(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email-input').value;
+      const password = document.getElementById('password-input').value;
+
+      // Simple validation (this is a demo - real auth would be on backend)
+      if (email && password) {
+        currentUser = {
+          email: email,
+          name: email.split('@')[0],
+          signedInAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem('chatboard_user', JSON.stringify(currentUser));
+        showChatScreen();
+        showToast(`Welcome back, ${currentUser.name}! 👋`);
+      }
+    }
+
+    function handleGuestSignIn() {
+      currentUser = {
+        email: 'guest@chatboard.app',
+        name: 'Guest',
+        isGuest: true,
+        signedInAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('chatboard_user', JSON.stringify(currentUser));
+      showChatScreen();
+      showToast('Welcome, Guest! 👋');
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('chatboard_user');
+      currentUser = null;
+      showSignInScreen();
+      showToast('You have been signed out. See you soon! 👋');
+    }
+
+    // Data handler for the Data SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        messages = data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        renderMessages();
+      }
+    };
+
+    function renderMessages() {
+      const container = document.getElementById('questions-list');
+      const emptyState = document.getElementById('empty-state');
+
+      if (messages.length === 0) {
+        emptyState.classList.remove('hidden');
+        container.innerHTML = '';
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.innerHTML = '';
+
+      messages.forEach(msg => {
+        const bubble = createMessageBubble(msg);
+        container.appendChild(bubble);
+      });
+
+      scrollToBottom();
+    }
+
+    function createMessageBubble(msg) {
+      const config = window.elementSdk?.config || defaultConfig;
+      const bubble = document.createElement('div');
+      bubble.className = 'question-bubble flex ' + (msg.isUser ? 'justify-end' : 'justify-start');
+      bubble.dataset.id = msg.__backendId;
+      
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      if (msg.isUser) {
+        // User message (right side)
+        let contentHTML = '';
+        
+        if (msg.type === 'image') {
+          contentHTML = `<img src="${msg.imageData}" alt="Uploaded image" class="rounded-lg max-w-full max-h-64 object-cover mb-2" loading="lazy" onerror="this.style.display='none'; this.alt='Image failed to load';">`;
+          if (msg.content) {
+            contentHTML += `<p class="text-white break-words" style="font-size: ${config.font_size || defaultConfig.font_size}px;">${escapeHtml(msg.content)}</p>`;
+          }
+        } else if (msg.type === 'voice') {
+          contentHTML = `
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(255,255,255,0.25);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-xs opacity-80 text-white">Voice message</div>
+                <div class="text-sm font-medium text-white">${formatDuration(msg.duration || 0)}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          contentHTML = `<p class="text-white break-words leading-relaxed" style="font-size: ${config.font_size || defaultConfig.font_size}px;">${escapeHtml(msg.content)}</p>`;
+        }
+        
+        bubble.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[70%] user-message rounded-2xl rounded-br-md px-5 py-4">
+            ${contentHTML}
+            <div class="flex items-center justify-end gap-2 mt-2">
+              <span class="text-xs opacity-80 text-white font-medium">${time}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        // Bot reply (left side)
+        const botName = config.bot_name || defaultConfig.bot_name;
+        bubble.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[70%]">
+            <div class="flex items-center gap-2 mb-2 px-2">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" style="background: ${config.accent_color || defaultConfig.accent_color}; color: white;">
+                ${botName.charAt(0).toUpperCase()}
+              </div>
+              <span class="text-sm font-medium" style="color: ${config.text_color || defaultConfig.text_color};">${botName}</span>
+            </div>
+            <div class="bot-message rounded-2xl rounded-tl-md px-5 py-4">
+              <p class="break-words leading-relaxed" style="color: ${config.text_color || defaultConfig.text_color}; font-size: ${config.font_size || defaultConfig.font_size}px;">${escapeHtml(msg.content)}</p>
+              <div class="flex items-center justify-start gap-2 mt-2">
+                <span class="text-xs font-medium" style="color: rgba(234, 234, 234, 0.5);">${time}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return bubble;
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function scrollToBottom() {
+      setTimeout(() => {
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function generateReply(question, messageType = 'text', hasImage = false) {
+      const lowerQ = question.toLowerCase();
+      
+      // ACTION-BASED RESPONSES - Detect actions in text
+      // Sign language and accessibility support
+      if (lowerQ.match(/sign language|signing|asl|bsl|gesture|deaf|hard of hearing/)) {
+        return "I appreciate you communicating with me! While I can't interpret sign language from videos directly, I'm here to help however I can. You can:\n• Describe what you're signing about\n• Type your questions or thoughts\n• Share images if that helps communicate\nI'm here to assist you in the best way possible! 🤟";
+      }
+      
+      // Video/Media upload actions - Enhanced for accessibility
+      if (lowerQ.match(/upload.*video|video.*upload|sending.*video|share.*video|watch.*video/)) {
+        return "Thanks for mentioning the video! While I can't actually watch or interpret videos in this chat (including sign language videos), I'd love to hear what you want to communicate. Can you describe it to me in text, or let me know how I can help? 🎥";
+      }
+      
+      if (lowerQ.match(/upload.*file|file.*upload|sending.*file|attach.*file|document/)) {
+        return "I see you mentioned uploading a file! Currently, I can receive images and voice messages. If you have an image to share, use the photo button below. Otherwise, feel free to tell me about the file! 📄";
+      }
+      
+      // Action verbs - doing things
+      if (lowerQ.match(/\b(cooking|baking|making|creating|building|writing|drawing|painting)\b/)) {
+        const action = lowerQ.match(/\b(cooking|baking|making|creating|building|writing|drawing|painting)\b/)[0];
+        return `That's awesome that you're ${action}! I'd love to hear more about your project. What are you working on? Feel free to share a photo if you'd like! 🎨`;
+      }
+      
+      if (lowerQ.match(/\b(reading|studying|learning|researching)\b/)) {
+        return "That's great! Continuous learning is wonderful. What topic are you exploring? I'm here if you have any questions or want to discuss what you're learning! 📚";
+      }
+      
+      if (lowerQ.match(/\b(traveling|visiting|going to|trip to)\b/)) {
+        return "How exciting! Travel is always an adventure. Where are you heading? I'd love to hear about your plans or see photos if you'd like to share! ✈️";
+      }
+      
+      if (lowerQ.match(/\b(eating|lunch|dinner|breakfast|meal|food)\b/)) {
+        return "Yum! Food is always a great topic. What are you having? Feel free to share a photo of your meal - I'd love to see it! 🍽️";
+      }
+      
+      // Emotional states and reactions
+      if (lowerQ.match(/\b(happy|excited|amazing|wonderful|great news|celebrating)\b/)) {
+        return "That's fantastic! I'm so happy to hear that! What's making your day so wonderful? Tell me more! 🎉";
+      }
+      
+      if (lowerQ.match(/\b(sad|upset|worried|concerned|stressed|anxious)\b/)) {
+        return "I'm sorry you're feeling that way. I'm here to listen if you want to talk about it. Sometimes sharing what's on your mind can help. What's going on? 💙";
+      }
+      
+      // IMAGE-SPECIFIC RESPONSES
+      if (messageType === 'image' || hasImage) {
+        const imageResponses = [
+          "What a great image! Thanks for sharing that with me. The colors and composition look interesting! Is there a story behind this photo? 📸",
+          "Nice photo! I can see you shared an image. While I can't see the details, I'd love to hear what it shows. Can you tell me more about it? 🖼️",
+          "Thanks for the image! Photos can tell such interesting stories. What made you want to share this particular one? I'm curious to know more! 📷",
+          "Great shot! I received your image. What's the context behind it? I'd enjoy hearing the story! 🎨"
+        ];
+        
+        // Check if there's accompanying text with specific questions
+        if (lowerQ.includes('what') || lowerQ.includes('how') || lowerQ.includes('why')) {
+          return "I can see you've shared an image along with a question! While I can't analyze the visual content, I'm happy to discuss the topic. Can you describe what's in the image so I can help better? 🔍";
+        }
+        
+        return imageResponses[Math.floor(Math.random() * imageResponses.length)];
+      }
+      
+      // VOICE-SPECIFIC RESPONSES
+      if (messageType === 'voice') {
+        const voiceResponses = [
+          "I received your voice message! While I can't listen to audio, I appreciate you taking the time to record it. Could you type out the main points so I can help you? 🎤",
+          "Thanks for the voice message! I wish I could hear your voice, but I can definitely help if you write out your question or thought. What would you like to discuss? 🗣️",
+          "Got your voice recording! Audio isn't something I can process, but I'm all ears (well, eyes!) if you want to type your message. How can I assist you? 🎙️"
+        ];
+        return voiceResponses[Math.floor(Math.random() * voiceResponses.length)];
+      }
+      
+      // STANDARD TEXT RESPONSES
+      // Greeting responses
+      if (lowerQ.match(/\b(hi|hello|hey|greetings|howdy)\b/)) {
+        const greetings = [
+          "Hello! How can I help you today? Feel free to ask me anything! 👋",
+          "Hey there! Great to see you! What's on your mind? 😊",
+          "Hi! I'm here and ready to chat. What would you like to talk about? 💬"
+        ];
+        return greetings[Math.floor(Math.random() * greetings.length)];
+      }
+      
+      // How are you
+      if (lowerQ.match(/how are you|how do you do|how's it going/)) {
+        return "I'm doing great, thank you for asking! I'm here and ready to help you with any questions you have. How are you doing today? What's on your mind? 😊";
+      }
+      
+      // Name questions
+      if (lowerQ.match(/what.*your name|who are you|tell me about yourself/)) {
+        return "I'm an AI assistant here to help answer your questions and have conversations with you. I can respond to text, receive images, and acknowledge voice messages. What would you like to know? 🤖";
+      }
+      
+      // Weather
+      if (lowerQ.match(/weather|temperature|forecast|rain|sunny|cloudy/)) {
+        return "I don't have access to real-time weather data, but I'd recommend checking a weather service or app for the most accurate forecast in your area! Is the weather affecting your plans today? 🌤️";
+      }
+      
+      // Time
+      if (lowerQ.match(/what time|current time|what's the time/)) {
+        const now = new Date();
+        return `The current time is ${now.toLocaleTimeString()}. Is there anything else I can help you with? ⏰`;
+      }
+      
+      // Help or capabilities
+      if (lowerQ.match(/help|what can you do|capabilities|features/)) {
+        return "I'm here to answer your questions and have conversations with you! You can:\n• Ask me questions about various topics\n• Share images using the photo button 📸\n• Record voice messages 🎤\n• Have natural conversations\n\nWhat would you like to talk about? 💡";
+      }
+      
+      // Thank you
+      if (lowerQ.match(/thank you|thanks|appreciate|thx/)) {
+        return "You're very welcome! I'm happy to help. If you have any other questions or just want to chat, feel free to reach out anytime! 😊";
+      }
+      
+      // Goodbye
+      if (lowerQ.match(/bye|goodbye|see you|gotta go|take care/)) {
+        return "Goodbye! It was great chatting with you. Come back anytime you want to talk or have questions. Take care! 👋";
+      }
+      
+      // Questions about the app
+      if (lowerQ.match(/this app|this chat|chatboard|how does this work/)) {
+        return "This is an interactive chat interface where you can ask questions and get responses! You can send text, upload photos, or record voice messages. All messages are saved to your Canva Sheet so you can come back to them later. Pretty cool, right? 🚀";
+      }
+      
+      // Questions containing "why", "how", "what", "when", "where"
+      if (lowerQ.match(/\bwhy\b/)) {
+        return "That's a thought-provoking 'why' question! While I may not have all the answers, I'm happy to explore this topic with you. Can you give me more context about what you're curious about? 🤔";
+      }
+      
+      if (lowerQ.match(/\bhow\b/) && lowerQ.match(/\bdo\b|\bmake\b|\bcreate\b/)) {
+        return "Great 'how-to' question! I'd be happy to help guide you through this. Can you tell me more specifically what you're trying to accomplish? The more details you share, the better I can assist! 🛠️";
+      }
+      
+      // Default responses for other questions
+      const defaultResponses = [
+        "That's an interesting question! While I don't have specific information about that, I'm here to help with any questions you might have. Could you tell me more? 💭",
+        "Great question! I appreciate you asking. Is there a specific aspect of this topic you'd like to explore further? I'm all ears! 🎯",
+        "Thanks for asking! That's a topic worth discussing. What specifically would you like to know more about? 📝",
+        "I understand your question. While I may not have all the details, I'm happy to discuss this further with you. What's your main concern or interest here? 💬",
+        "That's a thoughtful question! I'd be happy to help you explore this topic. Could you tell me more about what you're looking for? 🔍"
+      ];
+      
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      
+      const input = document.getElementById('question-input');
+      const btn = document.getElementById('send-btn');
+      const question = input.value.trim();
+      
+      if (!question || isSubmitting) return;
+
+      if (messages.length >= 998) {
+        document.getElementById('limit-warning').classList.remove('hidden');
+        return;
+      }
+
+      isSubmitting = true;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="animate-pulse">Sending...</span>';
+
+      // Create user message
+      const userResult = await window.dataSdk.create({
+        content: question,
+        type: 'text',
+        timestamp: new Date().toISOString(),
+        id: Date.now().toString(),
+        isUser: true
+      });
+
+      if (userResult.isOk) {
+        input.value = '';
+        document.getElementById('char-count').textContent = '0 / 500';
+        
+        // Show typing indicator
+        document.getElementById('typing-indicator').classList.remove('hidden');
+        scrollToBottom();
+        
+        // Simulate bot "thinking" time (1-2 seconds)
+        const thinkingTime = 1000 + Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, thinkingTime));
+        
+        // Hide typing indicator
+        document.getElementById('typing-indicator').classList.add('hidden');
+        
+        // Create bot reply
+        const reply = generateReply(question);
+        await window.dataSdk.create({
+          content: reply,
+          timestamp: new Date().toISOString(),
+          id: (Date.now() + 1).toString(),
+          isUser: false
+        });
+      } else {
+        showToast('Failed to send message. Please try again.');
+      }
+
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.innerHTML = '<span>Send</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white text-sm font-medium z-50';
+      toast.style.background = 'rgba(0,0,0,0.85)';
+      toast.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4)';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Element SDK setup
+    async function onConfigChange(config) {
+      const title = document.getElementById('board-title');
+      const input = document.getElementById('question-input');
+      
+      title.textContent = config.board_title || defaultConfig.board_title;
+      input.placeholder = config.input_placeholder || defaultConfig.input_placeholder;
+      
+      // Update typing indicator bot name
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        const botNameSpan = typingIndicator.querySelector('.text-sm.font-medium');
+        const botInitial = typingIndicator.querySelector('.w-8.h-8');
+        const botName = config.bot_name || defaultConfig.bot_name;
+        if (botNameSpan) botNameSpan.textContent = botName;
+        if (botInitial) botInitial.textContent = botName.charAt(0).toUpperCase();
+      }
+      
+      // Update font
+      const customFont = config.font_family || defaultConfig.font_family;
+      document.body.style.fontFamily = `${customFont}, sans-serif`;
+      
+      // Re-render messages with new styles
+      renderMessages();
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => {
+            config.font_size = value;
+            window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ['board_title', config.board_title || defaultConfig.board_title],
+        ['input_placeholder', config.input_placeholder || defaultConfig.input_placeholder],
+        ['bot_name', config.bot_name || defaultConfig.bot_name]
+      ]);
+    }
+
+    // Initialize
+    async function init() {
+      // Initialize Element SDK
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+
+      // Initialize Data SDK
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error('Failed to initialize Data SDK');
+        }
+      }
+
+      // Event listeners
+      document.getElementById('question-form').addEventListener('submit', handleSubmit);
+      
+      document.getElementById('question-input').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('char-count').textContent = `${count} / 500`;
+        document.getElementById('limit-warning').classList.add('hidden');
+      });
+
+      // Photo upload
+      document.getElementById('photo-btn').addEventListener('click', () => {
+        document.getElementById('photo-input').click();
+      });
+
+      document.getElementById('photo-input').addEventListener('change', handlePhotoUpload);
+
+      // Voice recording
+      document.getElementById('voice-btn').addEventListener('click', handleVoiceRecord);
+
+      // Authentication
+      document.getElementById('sign-in-form').addEventListener('submit', handleSignIn);
+      document.getElementById('guest-btn').addEventListener('click', handleGuestSignIn);
+      document.getElementById('sign-out-btn').addEventListener('click', handleSignOut);
+      document.getElementById('sign-up-link').addEventListener('click', () => {
+        showToast('Sign up feature coming soon! For now, you can continue as a guest. 😊');
+      });
+
+      // Check authentication status
+      checkAuth();
+
+      // Initial render
+      onConfigChange(window.elementSdk?.config || defaultConfig);
+    }
+
+    // Photo upload handler
+    async function handlePhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (messages.length >= 998) {
+        document.getElementById('limit-warning').classList.remove('hidden');
+        return;
+      }
+
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image is too large. Please choose an image under 5MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const imageData = event.target.result;
+        
+        isSubmitting = true;
+        const btn = document.getElementById('send-btn');
+        btn.disabled = true;
+
+        // Create user message with image
+        const userResult = await window.dataSdk.create({
+          content: 'Shared an image',
+          type: 'image',
+          imageData: imageData,
+          timestamp: new Date().toISOString(),
+          id: Date.now().toString(),
+          isUser: true
+        });
+
+        if (userResult.isOk) {
+          // Show typing indicator
+          document.getElementById('typing-indicator').classList.remove('hidden');
+          scrollToBottom();
+          
+          // Bot response delay
+          const thinkingTime = 1500 + Math.random() * 1000;
+          await new Promise(resolve => setTimeout(resolve, thinkingTime));
+          
+          document.getElementById('typing-indicator').classList.add('hidden');
+          
+          // Bot reply - pass image type and check for accompanying text
+          const hasText = file.name || false;
+          await window.dataSdk.create({
+            content: generateReply('Shared an image', 'image', true),
+            type: 'text',
+            timestamp: new Date().toISOString(),
+            id: (Date.now() + 1).toString(),
+            isUser: false
+          });
+        } else {
+          showToast('Failed to upload image. Please try again.');
+        }
+
+        isSubmitting = false;
+        btn.disabled = false;
+        e.target.value = '';
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // Voice recording handler
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingStartTime = 0;
+    let recordingTimer = null;
+
+    async function handleVoiceRecord() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        // Stop recording
+        mediaRecorder.stop();
+        return;
+      }
+
+      if (messages.length >= 998) {
+        document.getElementById('limit-warning').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const duration = (Date.now() - recordingStartTime) / 1000;
+          stream.getTracks().forEach(track => track.stop());
+          
+          document.getElementById('recording-status').classList.add('hidden');
+          clearInterval(recordingTimer);
+
+          isSubmitting = true;
+          const btn = document.getElementById('send-btn');
+          btn.disabled = true;
+
+          // Create voice message
+          const userResult = await window.dataSdk.create({
+            content: 'Sent a voice message',
+            type: 'voice',
+            duration: duration,
+            timestamp: new Date().toISOString(),
+            id: Date.now().toString(),
+            isUser: true
+          });
+
+          if (userResult.isOk) {
+            // Show typing indicator
+            document.getElementById('typing-indicator').classList.remove('hidden');
+            scrollToBottom();
+            
+            const thinkingTime = 1500 + Math.random() * 1000;
+            await new Promise(resolve => setTimeout(resolve, thinkingTime));
+            
+            document.getElementById('typing-indicator').classList.add('hidden');
+            
+            // Bot reply - pass voice type
+            await window.dataSdk.create({
+              content: generateReply('Sent a voice message', 'voice', false),
+              type: 'text',
+              timestamp: new Date().toISOString(),
+              id: (Date.now() + 1).toString(),
+              isUser: false
+            });
+          } else {
+            showToast('Failed to send voice message. Please try again.');
+          }
+
+          isSubmitting = false;
+          btn.disabled = false;
+        };
+
+        // Start recording
+        mediaRecorder.start();
+        recordingStartTime = Date.now();
+        
+        document.getElementById('recording-status').classList.remove('hidden');
+        document.getElementById('record-timer').textContent = '0:00';
+
+        // Update timer
+        recordingTimer = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+          document.getElementById('record-timer').textContent = formatDuration(elapsed);
+        }, 1000);
+
+        // Stop button
+        document.getElementById('stop-record-btn').onclick = () => {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+        };
+
+      } catch (error) {
+        showToast('Microphone access denied. Please allow microphone access to record voice messages.');
+      }
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bfc0317c30279f4',t:'MTc2ODcxNzQ5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
